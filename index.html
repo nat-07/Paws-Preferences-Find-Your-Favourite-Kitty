@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Rank your</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #f3f3f3;
+        font-family: system-ui, sans-serif;
+      }
+
+      .container {
+        width: 320px;
+        
+        min-height: 500px;
+        max-height: max-content;
+        position: relative;
+       
+      }
+
+       .containerFinish {
+        width: 600px;
+        min-height: 375px;
+        max-height: 100vh;
+        position: relative;
+        margin-bottom: 10px;
+      }
+
+      .card {
+        position: absolute;
+        width: 320px;
+
+        height: 100%;
+        border-radius: 16px;
+        background-color: white;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        touch-action: none;
+        cursor: grab;
+        transition: transform 0.3s ease, background-color 0.2 ease;
+      }
+
+      .card img {
+        width: 100%;
+        height: 75%;
+        object-fit: cover;
+      }
+      .overlay {
+        position: absolute;
+        inset: 0;
+        background-color: transparent;
+        pointer-events: none;
+        transition: background-color 0.2s ease;
+      }
+
+      .info {
+        padding: 16px;
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .carousel {
+        
+        min-width: 320px;
+        max-width: 100vw;
+        overflow-x: auto;
+        height: 500px;
+        position: center;
+        margin: 3em auto;
+        display: flex;
+        gap: 1em;
+      }
+
+      .carousel-card {
+        flex: 0 0 20em;
+        width: 100%;
+        height: 100%;
+        border-radius: 16px;
+        background-color: white;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        touch-action: none;
+        cursor: grab;
+        transition: transform 0.3s ease, background-color 0.2 ease;
+      }
+
+      .carousel-card img {
+        width: 100%;
+        height: 75%;
+        object-fit: cover;
+      }
+
+      .label {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 3; /* above overlay */
+        opacity: 0; /* hide initially */
+        transition: opacity 0.2s ease;
+        width: 60px;
+        height: 60px;
+      }
+      .ack {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -40%);
+        z-index: 3; /* above overlay */
+        opacity: 0; /* hide initially */
+        transition: opacity 0.2s ease;
+        width: 60px;
+        height: 60px;
+      }
+      .go-again-text {
+        text-align: center;
+        font-size: 1.5em;
+        margin: 1em 0;
+      }
+
+      .label svg {
+        width: 100%;
+        height: 100%;
+        fill: white;
+      }
+
+      .nope {
+        right: 20px;
+        border: 3px solid #f87171;
+        color: #f87171;
+        transform: rotate(15deg);
+      }
+
+      .go-again-btn {
+        display: block;
+        margin: 1em auto;
+        padding: 0.5em 1em 10px 1em; /* top right bottom left */
+        font-size: 1.2em;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        background-color: #861e7f;
+        color: white;
+        transition: background-color 0.2s ease;
+      }
+      .liked-count-text {
+        text-align: center;
+        font-size: 1.5em;
+        margin: 1em 0;
+      }
+
+      .go-again-btn:hover {
+        background-color: #540d4f; /* darker on hover */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="cards"></div>
+
+    <script>
+      const listOfCats = [];
+      const listOfLikedCats = [];
+      // Create cat data
+      for (let i = 0; i < 10; i++) {
+        listOfCats.push({
+          index: i + 1,
+          img: "https://cataas.com/cat?unique=" + i,
+        });
+      }
+
+      const cardsContainer = document.getElementById("cards");
+
+      //Create Card
+      function createCard(cat) {
+        const card = document.createElement("container");
+        card.className = "card";
+
+        card.innerHTML = `
+      <div class="overlay"></div>
+      <div class="ack">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="50" height="50" fill="white">
+      <path d="M133.1 32c17.3 0 34.2 3.4 49.9 9.7l54.8 85.2-75.4 75.4c-1.5 1.5-2.4 3.6-2.3 5.8s1 4.2 2.6 5.7l112 104c2.9 2.7 7.4 2.9 10.5 .3s3.8-7 1.7-10.4l-60.4-98.1 90.7-75.6c2.6-2.1 3.5-5.7 2.4-8.8L296.4 60.6C319.6 42.3 348.6 32 378.9 32 452.4 32 512 91.6 512 165.1l0 2.6c0 112.2-139.9 242.5-212.9 298.2-12.4 9.4-27.6 14.1-43.1 14.1s-30.8-4.6-43.1-14.1C139.9 410.2 0 279.9 0 167.7l0-2.6C0 91.6 59.6 32 133.1 32z"/>
+        </svg>
+        </div>
+      <div class="label like">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="50" height="50" fill="white">
+          <path d="M305 151.1L320 171.8L335 151.1C360 116.5 400.2 96 442.9 96C516.4 96 576 155.6 576 229.1L576 231.7C576 343.9 436.1 474.2 363.1 529.9C350.7 539.3 335.5 544 320 544C304.5 544 289.2 539.4 276.9 529.9C203.9 474.2 64 343.9 64 231.7L64 229.1C64 155.6 123.6 96 197.1 96C239.8 96 280 116.5 305 151.1z"/>
+        </svg>
+      </div>
+       
+ <img src="${cat.img}">
+      <div class="info">Cat Number ${cat.index}</div>
+    `;
+        let startX = 0;
+        let currentX = 0;
+        let dragging = false;
+        const like = card.querySelector(".like");
+        const dislike = card.querySelector(".ack");
+
+        function start(e) {
+          dragging = true;
+          startX = e.touches ? e.touches[0].clientX : e.clientX;
+          card.style.transition = "none";
+        }
+
+        function move(e) {
+          if (!dragging) return;
+          currentX = (e.touches ? e.touches[0].clientX : e.clientX) - startX;
+          card.style.transform = `translateX(${currentX}px)`;
+          const overlay = card.querySelector(".overlay");
+          if (currentX > 0) {
+            overlay.style.backgroundColor = `rgba(74, 222, 128, ${Math.min(
+              currentX / 150,
+              0.7
+            )})`;
+            like.style.opacity = Math.min(currentX / 100, 1);
+          } else {
+            overlay.style.backgroundColor = `rgba(248, 113, 113, ${Math.min(
+              -currentX / 150,
+              0.7
+            )})`;
+            dislike.style.opacity = Math.min(-currentX / 100, 1);
+          }
+        }
+
+        function end() {
+          dragging = false;
+          card.style.transition = "transform 0.3s ease";
+          const overlay = card.querySelector(".overlay");
+
+          if (currentX > 120) {
+            // swiped right → like
+            if (!listOfLikedCats.some((c) => c.index === cat.index)) {
+              listOfLikedCats.push(cat);
+            } // push the cat object or cat.img if you want only URL
+
+            card.style.transform = `translateX(600px)`;
+            setTimeout(() => card.remove(), 300);
+            checkIfDone();
+          } else if (currentX < -120) {
+            // swiped left → dislike
+            card.style.transform = `translateX(-600px)`;
+            setTimeout(() => card.remove(), 300);
+            checkIfDone();
+          } else {
+            // not far enough → reset
+            card.style.transform = "translateX(0)";
+            overlay.style.backgroundColor = "transparent";
+            like.style.opacity = 0;
+            dislike.style.opacity = 0;
+          }
+        }
+
+        card.addEventListener("mousedown", start);
+        card.addEventListener("mousemove", move);
+        card.addEventListener("mouseup", end);
+        card.addEventListener("mouseleave", end);
+
+        card.addEventListener("touchstart", start);
+        card.addEventListener("touchmove", move);
+        card.addEventListener("touchend", end);
+
+        return card;
+      }
+
+      // Stack cards (last one on top)
+      listOfCats.reverse().forEach((cat) => {
+        cardsContainer.appendChild(createCard(cat));
+      });
+
+      function checkIfDone() {
+        if (cardsContainer.children.length === 1) {
+          showLikedCarousel();
+        }
+      }
+
+      function showLikedCarousel() {
+        // Clear the container
+        cardsContainer.innerHTML = "";
+
+        if (listOfLikedCats.length === 0) {
+          const likedCountText = document.createElement("div");
+          likedCountText.innerText = `You liked.. 0 cats..`;
+          likedCountText.className = "liked-count-text";
+          cardsContainer.append(likedCountText);
+        } else {
+          const carousel = document.createElement("div");
+          carousel.className = "carousel";
+
+          listOfLikedCats.forEach((cat) => {
+            const img = document.createElement("div");
+            img.className = "carousel-card";
+            img.innerHTML = `
+          <img src="${cat.img}"> 
+          <div class="info">Cat Number ${cat.index}</div>
+          `;
+            carousel.appendChild(img);
+          });
+          cardsContainer.className = "containerFinish";
+
+          cardsContainer.append(carousel);
+          const likedCountText = document.createElement("div");
+          likedCountText.innerText = `You liked ${listOfLikedCats.length} cat${
+            listOfLikedCats.length !== 1 ? "s" : ""
+          }!`;
+          likedCountText.className = "liked-count-text";
+
+          cardsContainer.append(likedCountText);
+        }
+
+        const goAgain = document.createElement("div");
+        goAgain.innerText = `Would you like to go again?`;
+        goAgain.className = "go-again-text";
+        cardsContainer.append(goAgain);
+
+        // Create button
+        const againButton = document.createElement("button");
+        againButton.innerText = "Go Again";
+        againButton.className = "go-again-btn"; // apply CSS class
+        cardsContainer.append(againButton);
+
+        // Append button
+        cardsContainer.append(againButton);
+
+        // Reset functionality
+        againButton.addEventListener("click", () => {
+          // Clear liked cats and container
+          listOfLikedCats.length = 0;
+          cardsContainer.innerHTML = "";
+          const newlistOfLikedCats = [];
+          // Create cat data
+          const newCats = [];
+          for (let i = 0; i < 10; i++) {
+            newCats.push({
+              index: i + 1,
+              img: "https://cataas.com/cat?unique=" + Date.now() + "-" + i,
+            });
+          }
+
+          // Recreate cards with the new list
+          newCats.reverse().forEach((cat) => {
+            cardsContainer.appendChild(createCard(cat));
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
